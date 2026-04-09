@@ -1,0 +1,9 @@
+{
+  "pull-request-title-pattern": "chore: release ${version}",
+  "packages": {
+    ".": {
+      "release-type": "python",
+      "package-name": "sqlalchemy-deprecated-column"
+    }
+  }
+}
