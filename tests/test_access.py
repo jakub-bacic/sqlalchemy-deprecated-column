@@ -77,9 +77,14 @@ class TestInit:
 
         assert not recwarn.list
 
-    @pytest.mark.filterwarnings("ignore::DeprecationWarning")
-    def test_ignores_value_of_deprecated_field(self, model_cls):
-        """The value is simply discarded without a runtime error."""
-        instance = model_cls(old_field="some_value")
+    def test_emits_deprecation_warnings_when_deprecated_field_is_used(self, model_cls):
+        with pytest.warns(DeprecationWarning) as record:
+            model_cls(old_field="some_value")
 
-        assert instance.old_field is None
+        # SQLAlchemy's __init__ does hasattr(cls_, k) before setattr, triggering
+        # the class expression first, then the setter.
+        referencing, writing = record
+        assert str(referencing.message) == "referencing deprecated class field MyModel.old_field"
+        assert referencing.filename == __file__
+        assert str(writing.message) == "writing to deprecated field MyModel.old_field"
+        assert writing.filename == __file__
