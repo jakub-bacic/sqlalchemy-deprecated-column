@@ -1,6 +1,6 @@
 [project]
 name = "sqlalchemy-deprecated-column"
-version = "0.1.0"
+version = "0.1.1"
 description = "Utility to mark SQLAlchemy ORM columns as deprecated to allow removing them in a backwards compatible manner."
 readme = "README.md"
 license = "MIT"
