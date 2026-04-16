@@ -39,7 +39,10 @@ class TestRead:
     def test_emits_deprecation_warning(self, model):
         with pytest.warns(DeprecationWarning) as record:
             _ = model.old_field
-        assert str(record[0].message) == "accessing deprecated field MyModel.old_field"
+
+        (warning,) = record
+        assert str(warning.message) == "accessing deprecated field MyModel.old_field"
+        assert warning.filename == __file__
 
 
 class TestClassRead:
@@ -48,7 +51,10 @@ class TestClassRead:
     def test_emits_deprecation_warning(self, model_cls):
         with pytest.warns(DeprecationWarning) as record:
             _ = model_cls.old_field
-        assert str(record[0].message) == "referencing deprecated class field MyModel.old_field"
+
+        (warning,) = record
+        assert str(warning.message) == "referencing deprecated class field MyModel.old_field"
+        assert warning.filename == __file__
 
 
 class TestWrite:
@@ -58,7 +64,9 @@ class TestWrite:
         with pytest.warns(DeprecationWarning) as record:
             model.old_field = "value"
 
-        assert str(record[0].message) == "writing to deprecated field MyModel.old_field"
+        (warning,) = record
+        assert str(warning.message) == "writing to deprecated field MyModel.old_field"
+        assert warning.filename == __file__
 
 
 class TestInit:

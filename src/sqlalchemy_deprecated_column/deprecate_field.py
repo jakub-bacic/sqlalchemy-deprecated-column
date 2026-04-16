@@ -37,7 +37,7 @@ class _DeprecatedColumn:
             warnings.warn(
                 f"accessing deprecated field {type(instance).__name__}.{name}",
                 DeprecationWarning,
-                stacklevel=2,
+                stacklevel=3,
             )
             return None
 
@@ -46,7 +46,7 @@ class _DeprecatedColumn:
             warnings.warn(
                 f"writing to deprecated field {type(instance).__name__}.{name}",
                 DeprecationWarning,
-                stacklevel=2,
+                stacklevel=3,
             )
 
         @prop.inplace.expression
@@ -55,7 +55,7 @@ class _DeprecatedColumn:
             warnings.warn(
                 f"referencing deprecated class field {cls.__name__}.{name}",
                 DeprecationWarning,
-                stacklevel=2,
+                stacklevel=5,
             )
             return null()
 
