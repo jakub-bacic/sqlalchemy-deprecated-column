@@ -352,7 +352,7 @@ wheels = [
 
 [[package]]
 name = "sqlalchemy-deprecated-column"
-version = "0.1.2"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "sqlalchemy" },
