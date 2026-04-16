@@ -3,7 +3,14 @@
   "packages": {
     ".": {
       "release-type": "python",
-      "package-name": "sqlalchemy-deprecated-column"
+      "package-name": "sqlalchemy-deprecated-column",
+      "extra-files": [
+        {
+          "path": "uv.lock",
+          "type": "toml",
+          "jsonpath": "$.package[?(@.name.value=='sqlalchemy-deprecated-column')].version"
+        }
+      ]
     }
   }
 }
