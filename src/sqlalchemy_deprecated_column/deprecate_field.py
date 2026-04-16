@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import warnings
 from dataclasses import dataclass
 from typing import Any
@@ -15,6 +16,27 @@ class _Configuration:
 
 
 _config = _Configuration()
+
+
+def _find_stack_level() -> int:
+    """Return stacklevel for warnings.warn pointing at the first caller outside SQLAlchemy.
+
+    Walks up the call stack from the warnings.warn call site, skipping all
+    SQLAlchemy frames, so the warning always points at user code regardless of
+    how many internal SQLAlchemy frames (e.g. __init__) sit in between.
+    """
+    frame = inspect.currentframe()
+    if frame is not None:
+        frame = frame.f_back  # skip this helper, land at the warnings.warn call site
+    level = 1
+    while frame is not None:
+        frame = frame.f_back
+        level += 1
+        if frame is None:
+            break
+        if not frame.f_globals.get("__name__", "").startswith("sqlalchemy"):
+            return level
+    return level
 
 
 def configure(alembic_mode: bool = False) -> None:
@@ -37,7 +59,7 @@ class _DeprecatedColumn:
             warnings.warn(
                 f"accessing deprecated field {type(instance).__name__}.{name}",
                 DeprecationWarning,
-                stacklevel=3,
+                stacklevel=_find_stack_level(),
             )
             return None
 
@@ -46,7 +68,7 @@ class _DeprecatedColumn:
             warnings.warn(
                 f"writing to deprecated field {type(instance).__name__}.{name}",
                 DeprecationWarning,
-                stacklevel=3,
+                stacklevel=_find_stack_level(),
             )
 
         @prop.inplace.expression
@@ -55,7 +77,7 @@ class _DeprecatedColumn:
             warnings.warn(
                 f"referencing deprecated class field {cls.__name__}.{name}",
                 DeprecationWarning,
-                stacklevel=5,
+                stacklevel=_find_stack_level(),
             )
             return null()
 
