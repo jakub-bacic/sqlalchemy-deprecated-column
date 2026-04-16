@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/compare/v0.1.1...v0.1.2) (2026-04-16)
+
+
+### Bug Fixes
+
+* deprecation warnings point at SQLAlchemy internals when triggered from __init__ ([#8](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/issues/8)) ([6c8af0e](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/commit/6c8af0ebfadf7042b7ca2cd0bd8f68c7f411388a))
+
 ## [0.1.1](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/compare/sqlalchemy-deprecated-column-v0.1.0...sqlalchemy-deprecated-column-v0.1.1) (2026-04-16)
 
 
