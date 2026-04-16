@@ -4,6 +4,8 @@
     ".": {
       "release-type": "python",
       "package-name": "sqlalchemy-deprecated-column",
+      "tag-name": "${version}",
+      "release-name": "${version}",
       "extra-files": [
         {
           "path": "uv.lock",
