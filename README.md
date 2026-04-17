@@ -1,6 +1,7 @@
 # sqlalchemy-deprecated-column
 
 [![PyPi](https://img.shields.io/pypi/v/sqlalchemy-deprecated-column.svg)](https://pypi.python.org/pypi/sqlalchemy-deprecated-column/)
+[![PyVersions](https://img.shields.io/pypi/pyversions/sqlalchemy-deprecated-column.svg)](https://pypi.python.org/pypi/sqlalchemy-deprecated-column/)
 [![Coverage](https://codecov.io/gh/jakub-bacic/sqlalchemy-deprecated-column/graph/badge.svg)](https://codecov.io/gh/jakub-bacic/sqlalchemy-deprecated-column)
 [![License](https://img.shields.io/github/license/jakub-bacic/sqlalchemy-deprecated-column.svg)](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/blob/main/LICENSE)
 
@@ -23,7 +24,21 @@ Removing a column from a live database requires coordination between code and sc
 
 ## Usage
 
-Replace `mapped_column()` with `deprecated_column()` for any column you want to deprecate:
+`deprecated_column()` is a drop-in replacement for `mapped_column()` and accepts the same arguments. For columns declared with only a bare `Mapped[T]` annotation, add `deprecated_column()` with no arguments.
+
+**Before:**
+
+```python
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String)
+    old_username: Mapped[str] = mapped_column(String(200), index=True)
+    old_email: Mapped[str]
+```
+
+**After:**
 
 ```python
 from sqlalchemy_deprecated_column import deprecated_column
@@ -33,7 +48,8 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String)
-    old_username: Mapped[str] = deprecated_column(String)  # was: mapped_column(String)
+    old_username: Mapped[str] = deprecated_column(String(200), index=True)
+    old_email: Mapped[str] = deprecated_column()
 ```
 
 While the column is deprecated the library:

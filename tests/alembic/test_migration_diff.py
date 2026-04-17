@@ -48,7 +48,7 @@ class TestMigrationDiff:
         class Before(BeforeBase):
             __tablename__ = "my_model"
             id: Mapped[int] = mapped_column(primary_key=True)
-            old_field: Mapped[str | None] = mapped_column(String)
+            old_field: Mapped[str | None] = mapped_column(String, nullable=True)
 
         class AfterBase(DeclarativeBase):
             pass
@@ -56,7 +56,7 @@ class TestMigrationDiff:
         class After(AfterBase):
             __tablename__ = "my_model"
             id: Mapped[int] = mapped_column(primary_key=True)
-            old_field: Mapped[str] = deprecated_column(String)
+            old_field: Mapped[str | None] = deprecated_column(String, nullable=True)
 
         ops = diff_schemas(engine, BeforeBase.metadata, AfterBase.metadata)
         assert ops == []
@@ -93,3 +93,31 @@ class TestMigrationDiff:
         assert column == "old_field"
         assert was_nullable is False
         assert becomes_nullable is True
+
+    def test_extra_arguments_are_forwarded(self, engine):
+        """Extra arguments (e.g. index=True) are forwarded to mapped_column so
+        Alembic sees the column unchanged apart from nullability — no spurious
+        DROP INDEX op is generated.
+        """
+
+        class BeforeBase(DeclarativeBase):
+            pass
+
+        class Before(BeforeBase):
+            __tablename__ = "my_model"
+            id: Mapped[int] = mapped_column(primary_key=True)
+            old_field: Mapped[str] = mapped_column(String, nullable=False, index=True)
+
+        class AfterBase(DeclarativeBase):
+            pass
+
+        class After(AfterBase):
+            __tablename__ = "my_model"
+            id: Mapped[int] = mapped_column(primary_key=True)
+            old_field: Mapped[str] = deprecated_column(String, nullable=False, index=True)
+
+        ops = diff_schemas(engine, BeforeBase.metadata, AfterBase.metadata)
+        assert len(ops) == 1
+
+        op, schema, table, column, _, was_nullable, becomes_nullable = ops[0]
+        assert op == "modify_nullable"

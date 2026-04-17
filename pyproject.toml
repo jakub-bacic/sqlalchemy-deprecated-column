@@ -9,6 +9,15 @@ requires-python = ">=3.10"
 authors = [
     { name = "Jakub Bacic", email = "jakub.bacic@gmail.com" }
 ]
+keywords = [
+    "sqlalchemy",
+    "orm",
+    "migration",
+    "deprecation",
+    "column",
+    "alembic",
+    "backward compatibility",
+]
 dependencies = [
     "sqlalchemy>=2.0",
 ]
