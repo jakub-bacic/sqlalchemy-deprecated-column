@@ -1,5 +1,8 @@
 # sqlalchemy-deprecated-column
 
+[![PyPi](https://img.shields.io/pypi/v/sqlalchemy-deprecated-column.svg?branch=master)](https://pypi.python.org/pypi/sqlalchemy-deprecated-column/)
+[![License](https://img.shields.io/github/license/jakub-bacic/sqlalchemy-deprecated-column.svg)](./LICENSE)
+
 Safely remove SQLAlchemy ORM columns through a gradual deprecation process.
 Inspired by [django-deprecate-fields](https://github.com/3YOURMIND/django-deprecate-fields).
 

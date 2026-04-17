@@ -29,9 +29,9 @@ classifiers = [
 ]
 
 [project.urls]
-Repository = "https://github.com/jakub-bacic/sqlalchemy-deprecate-fields"
-Issues = "https://github.com/jakub-bacic/sqlalchemy-deprecate-fields/issues"
-Changelog = "https://github.com/jakub-bacic/sqlalchemy-deprecate-fields/blob/main/CHANGELOG.md"
+Repository = "https://github.com/jakub-bacic/sqlalchemy-deprecated-column"
+Issues = "https://github.com/jakub-bacic/sqlalchemy-deprecated-column/issues"
+Changelog = "https://github.com/jakub-bacic/sqlalchemy-deprecated-column/blob/main/CHANGELOG.md"
 
 
 [build-system]
