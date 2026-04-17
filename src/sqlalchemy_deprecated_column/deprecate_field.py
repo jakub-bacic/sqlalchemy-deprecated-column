@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import inspect
+import sys
 import warnings
 from dataclasses import dataclass
 from typing import Any
@@ -18,35 +18,33 @@ class _Configuration:
 _config = _Configuration()
 
 
-def _find_stack_level() -> int:
-    """Return stacklevel for warnings.warn pointing at the first caller outside SQLAlchemy.
+_INTERNAL_PREFIXES = (
+    "sqlalchemy",
+    "sqlalchemy_deprecated_column",
+)
 
-    Walks up the call stack from the warnings.warn call site, skipping all
-    SQLAlchemy frames, so the warning always points at user code regardless of
-    how many internal SQLAlchemy frames (e.g. __init__) sit in between.
-    """
-    frame = inspect.currentframe()
-    if frame is not None:
-        frame = frame.f_back  # skip this helper, land at the warnings.warn call site
+
+def _is_internal(module_name: str) -> bool:
+    return any(
+        module_name == prefix or module_name.startswith(prefix + ".")
+        for prefix in _INTERNAL_PREFIXES
+    )
+
+
+def _find_stack_level() -> int:
+    frame = sys._getframe(1)  # type: ignore[attr-defined]
     level = 1
-    while frame is not None:
+
+    while frame:
+        module_name = frame.f_globals.get("__name__", "")
+
+        if not _is_internal(module_name):
+            return level
+
         frame = frame.f_back
         level += 1
-        if frame is None:
-            break
-        if not frame.f_globals.get("__name__", "").startswith("sqlalchemy"):
-            return level
+
     return level
-
-
-def configure(alembic_mode: bool = False) -> None:
-    """Configure sqlalchemy-deprecate-fields behaviour.
-
-    Call with ``alembic_mode=True`` at the top of ``alembic/env.py``, before
-    any model imports, so that Alembic sees deprecated columns as real nullable
-    columns and does not generate DROP COLUMN migrations.
-    """
-    _config.alembic_mode = alembic_mode
 
 
 class _DeprecatedColumn:
@@ -82,6 +80,16 @@ class _DeprecatedColumn:
             return null()
 
         setattr(owner, name, prop)
+
+
+def configure(alembic_mode: bool = False) -> None:
+    """Configure sqlalchemy-deprecate-fields behaviour.
+
+    Call with ``alembic_mode=True`` at the top of ``alembic/env.py``, before
+    any model imports, so that Alembic sees deprecated columns as real nullable
+    columns and does not generate DROP COLUMN migrations.
+    """
+    _config.alembic_mode = alembic_mode
 
 
 def deprecated_column(*args: Any, **kwargs: Any) -> Any:
