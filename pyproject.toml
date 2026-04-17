@@ -43,6 +43,7 @@ dev = [
     "alembic>=1.18.4",
     "pyright>=1.1.408",
     "pytest>=9.0.3",
+    "pytest-cov>=6.0",
     "ruff>=0.15.9",
 ]
 

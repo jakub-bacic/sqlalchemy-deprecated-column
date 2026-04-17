@@ -7,13 +7,13 @@ would generate.
 
 from alembic.autogenerate import compare_metadata
 from alembic.runtime.migration import MigrationContext
-from sqlalchemy import String, create_engine
+from sqlalchemy import String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from sqlalchemy_deprecated_column import deprecated_column
 
 
-def diff_schemas(before_metadata, after_metadata):
+def diff_schemas(engine, before_metadata, after_metadata):
     """Create a DB from before_metadata and return flattened compare_metadata ops.
 
     compare_metadata returns a mixed structure: table-level ops are plain tuples
@@ -29,7 +29,6 @@ def diff_schemas(before_metadata, after_metadata):
     This function flattens that into a uniform list of op tuples so tests can
     iterate or index without handling both shapes.
     """
-    engine = create_engine("sqlite://")
     before_metadata.create_all(engine)
     with engine.connect() as conn:
         ctx = MigrationContext.configure(conn)
@@ -40,7 +39,7 @@ def diff_schemas(before_metadata, after_metadata):
 class TestMigrationDiff:
     """Alembic compare_metadata produces correct diffs for deprecated columns."""
 
-    def test_no_migration_when_db_has_deprecated_column(self):
+    def test_no_migration_when_db_has_deprecated_column(self, engine):
         """No migration ops are generated when the DB column is already nullable."""
 
         class BeforeBase(DeclarativeBase):
@@ -59,10 +58,10 @@ class TestMigrationDiff:
             id: Mapped[int] = mapped_column(primary_key=True)
             old_field: Mapped[str] = deprecated_column(String)
 
-        ops = diff_schemas(BeforeBase.metadata, AfterBase.metadata)
+        ops = diff_schemas(engine, BeforeBase.metadata, AfterBase.metadata)
         assert ops == []
 
-    def test_drop_not_null_generated_for_non_null_deprecated_field(self):
+    def test_drop_not_null_generated_for_non_null_deprecated_field(self, engine):
         """A DROP NOT NULL migration is generated when the DB column is NOT NULL.
 
         Deprecating a non-nullable column requires making it nullable first so
@@ -85,7 +84,7 @@ class TestMigrationDiff:
             id: Mapped[int] = mapped_column(primary_key=True)
             old_field: Mapped[str] = deprecated_column(String, nullable=False)
 
-        ops = diff_schemas(BeforeBase.metadata, AfterBase.metadata)
+        ops = diff_schemas(engine, BeforeBase.metadata, AfterBase.metadata)
         assert len(ops) == 1
 
         op, schema, table, column, _, was_nullable, becomes_nullable = ops[0]

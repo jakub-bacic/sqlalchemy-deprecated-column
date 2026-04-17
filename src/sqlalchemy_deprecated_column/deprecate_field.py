@@ -44,7 +44,7 @@ def _find_stack_level() -> int:
         frame = frame.f_back
         level += 1
 
-    return level
+    return level  # pragma: no cover
 
 
 class _DeprecatedColumn:

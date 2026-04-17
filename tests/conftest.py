@@ -10,7 +10,9 @@ import sqlalchemy_deprecated_column as sdf
 
 @pytest.fixture
 def engine():
-    return create_engine("sqlite://")
+    e = create_engine("sqlite://")
+    yield e
+    e.dispose()
 
 
 @pytest.fixture
