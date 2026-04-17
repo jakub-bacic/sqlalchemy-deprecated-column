@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/compare/v0.1.2...v0.1.3) (2026-04-17)
+
+
+### Documentation
+
+* improve README and fix project urls ([18b836d](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/commit/18b836dbcab7d1612f733774b7008fb5408468dd))
+
 ## [0.1.2](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/compare/v0.1.1...v0.1.2) (2026-04-16)
 
 
