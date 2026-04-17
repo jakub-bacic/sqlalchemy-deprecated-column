@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/compare/v0.1.3...v0.1.4) (2026-04-17)
+
+
+### Documentation
+
+* add keywords for PyPI discoverability ([#14](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/issues/14)) ([f05dbfa](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/commit/f05dbfae12751daaaa309af15e1f80cf58e4369b))
+
 ## [0.1.3](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/compare/v0.1.2...v0.1.3) (2026-04-17)
 
 
