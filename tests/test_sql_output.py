@@ -55,7 +55,7 @@ class TestSqlOutput:
 
     @pytest.mark.filterwarnings("ignore::DeprecationWarning")
     def test_deprecated_column_supports_sql_expressions(self, model_cls, session, capsql):
-        """`Ensure callers can write queries against a deprecated field without a runtime error."""
+        """Ensure callers can write queries against a deprecated field without a runtime error."""
         stmt = select(model_cls).where(model_cls.deprecated_name.is_(None))
         session.execute(stmt)
 

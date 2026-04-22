@@ -5,7 +5,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
-import sqlalchemy_deprecated_column as sdf
+import sqlalchemy_deprecated_column as sdc
 
 
 @pytest.fixture
@@ -24,7 +24,7 @@ def session(engine):
 
 @pytest.fixture(autouse=True)
 def reset_config():
-    sdf.configure()
+    sdc.configure()
     yield
 
 
