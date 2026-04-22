@@ -83,7 +83,7 @@ class _DeprecatedColumn:
 
 
 def configure(alembic_mode: bool = False) -> None:
-    """Configure sqlalchemy-deprecate-fields behaviour.
+    """Configure sqlalchemy-deprecated-column behaviour.
 
     Call with ``alembic_mode=True`` at the top of ``alembic/env.py``, before
     any model imports, so that Alembic sees deprecated columns as real nullable
