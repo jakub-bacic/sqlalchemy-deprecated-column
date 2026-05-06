@@ -14,6 +14,12 @@ Inspired by [django-deprecate-fields](https://github.com/3YOURMIND/django-deprec
 pip install sqlalchemy-deprecated-column
 ```
 
+While the project is pre-1.0, breaking changes may land in **minor** releases (e.g. `0.1.x` → `0.2.0`), following the SemVer convention for `0.y.z` versions. Patch releases (`0.1.3` → `0.1.4`) remain backwards-compatible. To avoid surprise breakage, pin to a specific minor version:
+
+```
+sqlalchemy-deprecated-column~=0.1.0
+```
+
 ## How it works
 
 Removing a column from a live database requires coordination between code and schema changes. Dropping the column in a single step would break any running application instances that still reference it. `deprecated_column()` lets you do this safely in three steps:
