@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/compare/v0.1.4...v0.2.0) (2026-05-06)
+
+
+### Features
+
+* deprecate positional argument in configure() ([#17](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/issues/17)) ([a398795](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/commit/a3987955843c3b8a3d6ffa76b0ea8318dfaca40c))
+
 ## [0.1.4](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/compare/v0.1.3...v0.1.4) (2026-04-17)
 
 
