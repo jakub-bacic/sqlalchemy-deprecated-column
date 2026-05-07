@@ -25,7 +25,7 @@ sqlalchemy-deprecated-column~=0.1.0
 Removing a column from a live database requires coordination between code and schema changes. Dropping the column in a single step would break any running application instances that still reference it. `deprecated_column()` lets you do this safely in three steps:
 
 1. **Deprecate**: replace `mapped_column()` with `deprecated_column()` and run an Alembic migration. The column stays in the database but becomes nullable if it wasn't already.
-2. **Deploy**: the column is hidden from the ORM — it no longer appears in any generated SQL. Any remaining code that reads or writes the column gets a `DeprecationWarning` at runtime, making stale references easy to find and remove.
+2. **Deploy**: the column is hidden from the ORM — it no longer appears in any generated SQL. Any remaining code that reads or writes the column gets a `DeprecationWarning` at runtime (or raises `ColumnDeprecatedError` if `raise_on_access=True`), making stale references easy to find and remove.
 3. **Remove**: once all references are gone, delete the `deprecated_column()` definition from the model and run a final migration to drop the column from the database.
 
 ## Usage
@@ -64,6 +64,14 @@ While the column is deprecated the library:
 - **Warns on instance read**: `instance.old_username` returns `None` and emits a `DeprecationWarning` naming the model and column, so the call site is easy to locate.
 - **Warns on class-level reference**: `User.old_username` (e.g. in filter expressions) emits a `DeprecationWarning` and evaluates to SQL `NULL`.
 - **Warns on write and discards the value**: `instance.old_username = "x"` emits a `DeprecationWarning` and silently drops the value, so no stale data is written to the database.
+
+Pass `raise_on_access=True` to raise a `ColumnDeprecatedError` on any access instead of emitting a warning. This is useful when you want to enforce that all stale references are removed — for example, by letting the exception surface in tests or CI:
+
+```python
+from sqlalchemy_deprecated_column import ColumnDeprecatedError, deprecated_column
+
+old_username: Mapped[str] = deprecated_column(String(200), raise_on_access=True)
+```
 
 ## Alembic integration
 
