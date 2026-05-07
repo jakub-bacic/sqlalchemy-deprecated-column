@@ -47,36 +47,35 @@ def _find_stack_level() -> int:
     return level  # pragma: no cover
 
 
+class ColumnDeprecatedError(Exception):
+    pass
+
+
 class _DeprecatedColumn:
-    def __init__(self, *_args: Any, **_kwargs: Any) -> None:
-        pass
+    def __init__(self, *_args: Any, raise_on_access: bool = False, **_kwargs: Any) -> None:
+        self._raise_on_access = raise_on_access
 
     def __set_name__(self, owner: type, name: str) -> None:
+        raise_on_access = self._raise_on_access
+
+        def _emit(msg: str) -> None:
+            if raise_on_access:
+                raise ColumnDeprecatedError(msg)
+            warnings.warn(msg, DeprecationWarning, stacklevel=_find_stack_level())
+
         @hybrid_property
         def prop(instance: Any) -> None:
-            warnings.warn(
-                f"accessing deprecated field {type(instance).__name__}.{name}",
-                DeprecationWarning,
-                stacklevel=_find_stack_level(),
-            )
+            _emit(f"accessing deprecated field {type(instance).__name__}.{name}")
             return None
 
         @prop.inplace.setter
         def _(instance: Any, value: Any) -> None:
-            warnings.warn(
-                f"writing to deprecated field {type(instance).__name__}.{name}",
-                DeprecationWarning,
-                stacklevel=_find_stack_level(),
-            )
+            _emit(f"writing to deprecated field {type(instance).__name__}.{name}")
 
         @prop.inplace.expression
         @classmethod
         def _(cls: type) -> Any:
-            warnings.warn(
-                f"referencing deprecated class field {cls.__name__}.{name}",
-                DeprecationWarning,
-                stacklevel=_find_stack_level(),
-            )
+            _emit(f"referencing deprecated class field {cls.__name__}.{name}")
             return null()
 
         setattr(owner, name, prop)
@@ -92,13 +91,16 @@ def configure(*, alembic_mode: bool = False) -> None:
     _config.alembic_mode = alembic_mode
 
 
-def deprecated_column(*args: Any, **kwargs: Any) -> Any:
+def deprecated_column(*args: Any, raise_on_access: bool = False, **kwargs: Any) -> Any:
     """Drop-in replacement for mapped_column() that marks the column as deprecated.
 
     In normal mode the column is excluded from the ORM mapper entirely:
     it will not appear in SELECT, INSERT, UPDATE, or RETURNING statements.
     Instance reads return None and emit a DeprecationWarning; writes emit a
     warning and are silently discarded.
+
+    Pass ``raise_on_access=True`` to raise ``ColumnDeprecatedError`` on any
+    access instead of emitting a warning.
 
     In Alembic mode (after ``configure(alembic_mode=True)``) the call is
     forwarded to ``mapped_column(*args, nullable=True, **kwargs)`` so that
@@ -111,8 +113,9 @@ def deprecated_column(*args: Any, **kwargs: Any) -> Any:
             __tablename__ = "users"
             id: Mapped[int] = mapped_column(primary_key=True)
             old_email: Mapped[str] = deprecated_column(String(200))
+            removed_field: Mapped[str] = deprecated_column(String(200), raise_on_access=True)
     """
     if _config.alembic_mode:
         kwargs["nullable"] = True
         return mapped_column(*args, **kwargs)
-    return _DeprecatedColumn(*args, **kwargs)
+    return _DeprecatedColumn(*args, raise_on_access=raise_on_access, **kwargs)
