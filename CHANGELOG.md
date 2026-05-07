@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/compare/v0.2.0...v0.3.0) (2026-05-07)
+
+
+### Features
+
+* add raise_on_access option to deprecated_column() ([#21](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/issues/21)) ([ba4ca0b](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/commit/ba4ca0bf3592507e5b05d32d51b5d184d7591eb5))
+* remove positional argument support from configure() ([#19](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/issues/19)) ([cf51269](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/commit/cf5126965a23b5683c2055d07cd134a876a53b26))
+
 ## [0.2.0](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/compare/v0.1.4...v0.2.0) (2026-05-06)
 
 
