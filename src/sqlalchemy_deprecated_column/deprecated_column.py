@@ -82,25 +82,13 @@ class _DeprecatedColumn:
         setattr(owner, name, prop)
 
 
-def configure(*args: bool, alembic_mode: bool = False) -> None:
+def configure(*, alembic_mode: bool = False) -> None:
     """Configure sqlalchemy-deprecated-column behaviour.
 
     Call with ``alembic_mode=True`` at the top of ``alembic/env.py``, before
     any model imports, so that Alembic sees deprecated columns as real nullable
     columns and does not generate DROP COLUMN migrations.
     """
-    if args:
-        if len(args) > 1:
-            raise TypeError(
-                f"configure() takes at most 1 positional argument but {len(args)} were given"
-            )
-        warnings.warn(
-            "Passing alembic_mode as a positional argument is deprecated and will be "
-            "removed in 0.3.0; use configure(alembic_mode=...) instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        alembic_mode = next(iter(args))
     _config.alembic_mode = alembic_mode
 
 
