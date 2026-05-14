@@ -92,14 +92,14 @@ users = Table(
 
 While the column is deprecated the library:
 
-- **Hides it from SELECT**: `select(users)` excludes the column — it will not appear in the query or in result rows.
+- **Projects it as NULL in SELECT**: `select(users)` substitutes `NULL` for the column — result rows remain accessible (`row.old_username` returns `None`), but no actual data is fetched from the database.
 - **Warns on explicit SELECT**: `select(users.c.old_username)` emits a `DeprecationWarning` at compile time and substitutes `NULL` in the query, so no data is fetched from the database.
 - **Warns on WHERE reference**: using the column in a filter expression (e.g. `users.c.old_username == "x"`) emits a `DeprecationWarning` at expression-build time and substitutes `NULL`.
 - **Hides it from auto-INSERT/UPDATE**: when the column is not explicitly referenced, it is excluded from generated INSERT and UPDATE statements entirely.
 - **Warns on explicit INSERT/UPDATE**: explicitly passing the column in `.values()` emits a `DeprecationWarning` and substitutes `NULL` for the supplied value.
 
 > [!IMPORTANT]
-> Unlike the ORM, explicit INSERT/UPDATE statements that reference the deprecated column (e.g. `insert(users).values(old_username="x")`) cannot have the column name stripped from the generated SQL. The value is replaced with `NULL` and a `DeprecationWarning` is emitted, but the column name remains in the query. Use the warning to locate and remove the remaining explicit reference.
+> When a deprecated column is explicitly passed to `.values()`, only the supplied value is replaced with `NULL` — the column name cannot be removed from the generated SQL. Use the `DeprecationWarning` to locate and remove the explicit reference.
 
 ## Options
 
