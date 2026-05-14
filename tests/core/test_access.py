@@ -33,6 +33,14 @@ class TestSelectClause:
         assert str(warning.message) == "reading deprecated column my_model.old_field"
         assert warning.filename == __file__
 
+    def test_emits_deprecation_warning_when_labeled(self, table):
+        with pytest.warns(DeprecationWarning) as record:
+            select(table.c.old_field.label("alias")).compile()
+
+        (warning,) = record
+        assert str(warning.message) == "reading deprecated column my_model.old_field"
+        assert warning.filename == __file__
+
 
 class TestWhereClause:
     """Referencing the column in a WHERE clause."""
