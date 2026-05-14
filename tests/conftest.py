@@ -3,7 +3,6 @@ from collections.abc import Generator
 import pytest
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Session
 
 import sqlalchemy_deprecated_column as sdc
 
@@ -13,13 +12,6 @@ def engine():
     e = create_engine("sqlite://")
     yield e
     e.dispose()
-
-
-@pytest.fixture
-def session(engine):
-    with Session(engine) as s:
-        yield s
-        s.rollback()
 
 
 @pytest.fixture(autouse=True)

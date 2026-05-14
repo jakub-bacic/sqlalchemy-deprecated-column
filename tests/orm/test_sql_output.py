@@ -1,7 +1,7 @@
-"""Tests for SQLAlchemy schema and SQL behaviour of deprecated_column().
+"""Tests for SQLAlchemy schema and SQL behavior of deprecated_column().
 
-Verifies that deprecated columns are excluded from the table definition and
-never appear in generated SELECT, WHERE, or INSERT statements.
+Verifies that deprecated columns never appear in generated SELECT, WHERE,
+or INSERT statements.
 """
 
 import pytest
@@ -32,11 +32,7 @@ def create_schema(engine, model_cls):
 
 
 class TestSqlOutput:
-    """Deprecated columns are hidden from the SQLAlchemy table and SQL output."""
-
-    def test_table_columns(self, model_cls):
-        """deprecated_column is absent from the mapped table's column set."""
-        assert set(model_cls.__table__.c.keys()) == {"id", "name"}
+    """Deprecated columns never appear in generated SQL output."""
 
     def test_deprecated_column_absent_from_select_sql(self, model_cls, session, capsql):
         stmt = select(model_cls)

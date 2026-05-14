@@ -1,54 +1,13 @@
 from __future__ import annotations
 
-import sys
 import warnings
-from dataclasses import dataclass
 from typing import Any
 
 from sqlalchemy import null
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import mapped_column
 
-
-@dataclass
-class _Configuration:
-    alembic_mode: bool = False
-
-
-_config = _Configuration()
-
-
-_INTERNAL_PREFIXES = (
-    "sqlalchemy",
-    "sqlalchemy_deprecated_column",
-)
-
-
-def _is_internal(module_name: str) -> bool:
-    return any(
-        module_name == prefix or module_name.startswith(prefix + ".")
-        for prefix in _INTERNAL_PREFIXES
-    )
-
-
-def _find_stack_level() -> int:
-    frame = sys._getframe(1)  # type: ignore[attr-defined]
-    level = 1
-
-    while frame:
-        module_name = frame.f_globals.get("__name__", "")
-
-        if not _is_internal(module_name):
-            return level
-
-        frame = frame.f_back
-        level += 1
-
-    return level  # pragma: no cover
-
-
-class ColumnDeprecatedError(Exception):
-    pass
+from ._shared import ColumnDeprecatedError, config, find_stack_level
 
 
 class _DeprecatedColumn:
@@ -61,7 +20,7 @@ class _DeprecatedColumn:
         def _emit(msg: str) -> None:
             if raise_on_access:
                 raise ColumnDeprecatedError(msg)
-            warnings.warn(msg, DeprecationWarning, stacklevel=_find_stack_level())
+            warnings.warn(msg, DeprecationWarning, stacklevel=find_stack_level())
 
         @hybrid_property
         def prop(instance: Any) -> None:
@@ -79,16 +38,6 @@ class _DeprecatedColumn:
             return null()
 
         setattr(owner, name, prop)
-
-
-def configure(*, alembic_mode: bool = False) -> None:
-    """Configure sqlalchemy-deprecated-column behaviour.
-
-    Call with ``alembic_mode=True`` at the top of ``alembic/env.py``, before
-    any model imports, so that Alembic sees deprecated columns as real nullable
-    columns and does not generate DROP COLUMN migrations.
-    """
-    _config.alembic_mode = alembic_mode
 
 
 def deprecated_column(*args: Any, raise_on_access: bool = False, **kwargs: Any) -> Any:
@@ -115,7 +64,7 @@ def deprecated_column(*args: Any, raise_on_access: bool = False, **kwargs: Any) 
             old_email: Mapped[str] = deprecated_column(String(200))
             removed_field: Mapped[str] = deprecated_column(String(200), raise_on_access=True)
     """
-    if _config.alembic_mode:
+    if config.alembic_mode:
         kwargs["nullable"] = True
         return mapped_column(*args, **kwargs)
     return _DeprecatedColumn(*args, raise_on_access=raise_on_access, **kwargs)

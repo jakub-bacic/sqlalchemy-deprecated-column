@@ -1,5 +1,12 @@
-"""Safely remove SQLAlchemy ORM columns through a gradual deprecation process."""
+"""Safely remove SQLAlchemy columns through a gradual deprecation process."""
 
-from .deprecated_column import ColumnDeprecatedError, configure, deprecated_column
+from ._core import DeprecatedColumn
+from ._orm import deprecated_column
+from ._shared import ColumnDeprecatedError, configure
 
-__all__ = ["ColumnDeprecatedError", "configure", "deprecated_column"]
+__all__ = [
+    "ColumnDeprecatedError",
+    "DeprecatedColumn",
+    "configure",
+    "deprecated_column",
+]

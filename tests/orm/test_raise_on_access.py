@@ -1,4 +1,4 @@
-"""Tests for raise_on_access=True behaviour of deprecated_column().
+"""Tests for raise_on_access=True behavior of deprecated_column().
 
 When raise_on_access is True, accessing a deprecated field raises
 ColumnDeprecatedError instead of emitting a DeprecationWarning.

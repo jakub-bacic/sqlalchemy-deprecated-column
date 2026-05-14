@@ -1,4 +1,4 @@
-"""Tests for runtime access behaviour of deprecated fields.
+"""Tests for runtime access behavior of deprecated fields.
 
 Covers instance reads, class-level reads, and instance writes — each of which
 should return None and emit a DeprecationWarning.
