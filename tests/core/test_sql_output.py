@@ -31,7 +31,7 @@ class TestSqlOutput:
         conn.execute(select(table))
 
         [sql] = capsql.records
-        assert "deprecated_name" not in sql
+        assert "my_model.deprecated_name" not in sql
 
     @pytest.mark.filterwarnings("ignore::DeprecationWarning")
     def test_null_substituted_when_column_selected_directly(self, table, conn, capsql):
@@ -48,7 +48,7 @@ class TestSqlOutput:
         conn.execute(select(table).where(table.c.deprecated_name == "alice"))
 
         [sql] = capsql.records
-        assert "deprecated_name" not in sql
+        assert "my_model.deprecated_name" not in sql
 
     @pytest.mark.filterwarnings("ignore::DeprecationWarning")
     def test_deprecated_column_supports_sql_expressions(self, table, conn, capsql):
@@ -56,7 +56,7 @@ class TestSqlOutput:
         conn.execute(select(table).where(table.c.deprecated_name.is_(None)))
 
         [sql] = capsql.records
-        assert "deprecated_name" not in sql
+        assert "my_model.deprecated_name" not in sql
 
     def test_deprecated_column_absent_from_auto_insert_sql(self, table, conn, capsql):
         """Auto-INSERT never includes the deprecated column."""
@@ -82,3 +82,15 @@ class TestSqlOutput:
         [sql] = capsql.records
         assert "NULL" in sql
         assert "test-value" not in sql
+
+
+class TestResultRow:
+    """Deprecated columns are accessible on result rows as None."""
+
+    def test_deprecated_column_returns_none_in_implicit_select(self, table, conn):
+        """row.deprecated_name returns None after select(table) — not AttributeError."""
+        conn.execute(table.insert().values(name="alice"))
+
+        row = conn.execute(select(table)).fetchone()
+
+        assert row.deprecated_name is None

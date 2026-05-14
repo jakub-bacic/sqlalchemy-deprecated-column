@@ -43,6 +43,13 @@ class TestRaiseOnAccess:
         ):
             select(table.c.old_field).compile()
 
+    def test_select_labeled_column_raises(self, table):
+        with pytest.raises(
+            ColumnDeprecatedError,
+            match="reading deprecated column my_model.old_field",
+        ):
+            select(table.c.old_field.label("alias")).compile()
+
     def test_where_clause_raises(self, table):
         with pytest.raises(
             ColumnDeprecatedError,
