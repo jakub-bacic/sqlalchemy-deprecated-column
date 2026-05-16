@@ -57,7 +57,10 @@ While the column is deprecated the library:
 - **Warns on class-level reference**: `User.old_username` (e.g. in filter expressions) emits a `DeprecationWarning` and evaluates to SQL `NULL`.
 - **Warns on write and discards the value**: `instance.old_username = "x"` emits a `DeprecationWarning` and silently drops the value, so no stale data is written to the database.
 
-### Core
+### Core (experimental)
+
+> [!NOTE]
+> This feature uses SQLAlchemy internal APIs — Core offers no public hooks for intercepting column references, unlike the ORM.
 
 `DeprecatedColumn()` is a drop-in replacement for `Column()` in Core `Table` definitions and accepts the same arguments.
 
