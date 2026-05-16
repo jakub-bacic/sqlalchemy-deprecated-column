@@ -60,7 +60,7 @@ While the column is deprecated the library:
 ### Core (experimental)
 
 > [!NOTE]
-> Core lacks the public extension points that make the ORM integration straightforward, so this feature relies on SQLAlchemy internal APIs that may change between minor releases.
+> This feature uses SQLAlchemy internal APIs — Core offers no public hooks for intercepting column references, unlike the ORM.
 
 `DeprecatedColumn()` is a drop-in replacement for `Column()` in Core `Table` definitions and accepts the same arguments.
 
