@@ -1,0 +1,27 @@
+name: SQLAlchemy latest compatibility
+
+on:
+  schedule:
+    - cron: "0 10 * * 1"   # every Monday at 10:00 UTC
+  workflow_dispatch:       # allow manual trigger
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install with latest SQLAlchemy
+        run: uv sync --upgrade-package sqlalchemy
+
+      - name: Show installed SQLAlchemy version
+        run: uv run python -c "import sqlalchemy; print(sqlalchemy.__version__)"
+
+      - name: Run tests
+        run: uv run pytest
