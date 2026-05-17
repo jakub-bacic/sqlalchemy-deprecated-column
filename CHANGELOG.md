@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.0](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/compare/v0.3.0...v0.4.0) (2026-05-17)
+
+
+### Features
+
+* add DeprecatedColumn for SQLAlchemy Core Table definitions ([#22](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/issues/22)) ([f35e8f2](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/commit/f35e8f2ec84a6467e1f7a0a86fa138a88f8531b4))
+
+
+### Bug Fixes
+
+* project Core deprecated columns as NULL in SELECT so result rows remain accessible ([#24](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/issues/24)) ([e3b2aaf](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/commit/e3b2aaf323492c43c1d2744c1977c3c850d38c46))
+
+
+### Documentation
+
+* mark Core feature as experimental ([#26](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/issues/26)) ([69b4e60](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/commit/69b4e6014569592f52aff8e5cc7c9651d61a7660))
+* update README for Core DeprecatedColumn ([#25](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/issues/25)) ([a9a0af5](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/commit/a9a0af5451a52e1b4178347cf48aacc12efeb35e))
+
 ## [0.3.0](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/compare/v0.2.0...v0.3.0) (2026-05-07)
 
 
