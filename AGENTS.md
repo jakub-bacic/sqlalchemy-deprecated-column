@@ -55,5 +55,6 @@ Use **US English** throughout — both in `README.md` and in docstrings (e.g. "b
 ## Key design decisions
 
 - **`deprecated_column()` is a drop-in for `mapped_column()`** — accepts the same arguments, which are intentionally ignored in normal mode (only forwarded to `mapped_column` in alembic_mode).
-- **`DeprecatedColumn` is a drop-in for `Column()`** — accepts the same arguments and forwards them to `Column.__init__()` in both modes; `nullable` is forced to `True`.
+- **`DeprecatedColumn` is a drop-in for `Column()`** — accepts the same arguments and forwards them to `Column.__init__()` in both modes; `nullable` is forced to `True`, and in normal mode Python-side `default`/`insert_default`/`onupdate` are dropped.
+- **Core only guards statements generated from the whole table** — `DeprecatedColumn` sets SQLAlchemy's `_omit_from_statements` flag (the mechanism behind the public `insert_sentinel()`) and emits warnings from a `@compiles` hook. Explicit references are never rewritten; avoid adding further overrides of SQLAlchemy internals.
 - **`conftest.py` resets config between tests** — the `reset_config` autouse fixture calls `sdc.configure()` to restore defaults, preventing state leaking between tests.

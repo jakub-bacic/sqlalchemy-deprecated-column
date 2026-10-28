@@ -59,9 +59,6 @@ While the column is deprecated the library:
 
 ### Core (experimental)
 
-> [!NOTE]
-> This feature uses SQLAlchemy internal APIs — Core offers no public hooks for intercepting column references, unlike the ORM.
-
 `DeprecatedColumn()` is a drop-in replacement for `Column()` in Core `Table` definitions and accepts the same arguments.
 
 **Before:**
@@ -95,20 +92,22 @@ users = Table(
 
 While the column is deprecated the library:
 
-- **Projects it as NULL in SELECT**: `select(users)` substitutes `NULL` for the column — result rows remain accessible (`row.old_username` returns `None`), but no actual data is fetched from the database.
-- **Warns on explicit SELECT**: `select(users.c.old_username)` emits a `DeprecationWarning` at compile time and substitutes `NULL` in the query, so no data is fetched from the database.
-- **Warns on WHERE reference**: using the column in a filter expression (e.g. `users.c.old_username == "x"`) emits a `DeprecationWarning` at expression-build time and substitutes `NULL`.
-- **Hides it from auto-INSERT/UPDATE**: when the column is not explicitly referenced, it is excluded from generated INSERT and UPDATE statements entirely.
-- **Warns on explicit INSERT/UPDATE**: explicitly passing the column in `.values()` emits a `DeprecationWarning` and substitutes `NULL` for the supplied value.
+- **Hides it from generated statements**: statements built from the whole table — `select(users)`, `users.select()`, joins, aliases, subqueries, CTEs, `returning(users)`, and INSERTs without explicit values — leave the column out, so they keep working after the column is eventually dropped from the database. Python-side `default`, `insert_default` and `onupdate` are ignored, as they would add the column back into INSERT and UPDATE statements; `server_default` is kept.
+- **Warns on explicit reference**: using `users.c.old_username` anywhere in a statement (SELECT, WHERE, ORDER BY, function arguments, …) emits a `DeprecationWarning` when the statement is compiled or executed. The statement itself is not changed — the real column is still used, so remove the reference before dropping the column. Indexes and constraints defined on the column are not references — `metadata.create_all()` neither warns nor raises.
 
 > [!IMPORTANT]
-> When a deprecated column is explicitly passed to `.values()`, only the supplied value is replaced with `NULL` — the column name cannot be removed from the generated SQL. Use the `DeprecationWarning` to locate and remove the explicit reference.
+> Unlike the ORM, Core has no model instances on which a deprecated attribute could be faked, so some references cannot be guarded:
+>
+> - **Result rows**: `row.old_username` on the result of `select(users)` raises `AttributeError` (and `row._mapping["old_username"]` raises `NoSuchColumnError`, a `KeyError` subclass), because the column is no longer selected.
+> - **Explicit writes**: values passed to `.values(old_username=...)` in INSERT or UPDATE statements are written as-is, without a warning.
+>
+> Search your codebase for these usages before deploying the deprecation.
 
 ## Options
 
 ### raise_on_access
 
-Pass `raise_on_access=True` to raise a `ColumnDeprecatedError` on any access instead of emitting a warning. This works for both ORM and Core and is useful when you want to enforce that all stale references are removed — for example, by letting the exception surface in tests or CI:
+Pass `raise_on_access=True` to raise a `ColumnDeprecatedError` on any access that would otherwise emit a warning. This works for both ORM and Core and is useful when you want to enforce that all stale references are removed — for example, by letting the exception surface in tests or CI:
 
 ```python
 # ORM (inside a model class)
@@ -132,10 +131,12 @@ In Alembic mode, `deprecated_column()` acts as `mapped_column(nullable=True)` an
 - **Not** generate `DROP COLUMN` for deprecated columns.
 - **Generate `ALTER TABLE … DROP NOT NULL`** if the column was originally non-nullable. This is needed because once the column is deprecated it is no longer included in `INSERT` statements — a `NOT NULL` column without a value would cause those inserts to fail.
 
+In Alembic mode, data migrations that use your Core `Table` objects also see deprecated columns as regular columns — `select(users)` includes them, and explicit references neither warn nor raise.
+
 ## Requirements
 
 - Python 3.10+
-- SQLAlchemy 2.0+
+- SQLAlchemy 2.0.10+
 
 ## License
 

@@ -1,66 +1,26 @@
 from __future__ import annotations
 
 import warnings
-import weakref
-from typing import Any, cast
+from typing import Any
 
-from sqlalchemy import Column, null
-from sqlalchemy.sql.elements import Label
-from sqlalchemy.sql.sqltypes import NullType
-from sqlalchemy.sql.type_api import TypeDecorator
+from sqlalchemy import Column
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.sql.compiler import SQLCompiler
 
 from ._shared import ColumnDeprecatedError, config, find_stack_level
-
-
-class _DeprecatedTypeWrapper(TypeDecorator[Any]):
-    """Substitutes NULL on writes and expression use."""
-
-    impl = NullType  # required class-level declaration; overridden per-instance in __init__
-    cache_ok = False
-
-    def __init__(self, column: DeprecatedColumn) -> None:
-        super().__init__()
-        self.impl = column.type
-        self._column_ref: weakref.ref[DeprecatedColumn] = weakref.ref(column)
-
-    @property
-    def column(self) -> DeprecatedColumn:
-        col = self._column_ref()
-        assert col is not None
-        return col
-
-    def column_expression(self, column: Any) -> Any:
-        return null()
-
-    def bind_expression(self, bindparam: Any) -> Any:
-        self.column.emit("writing to")
-        return null()
-
-    class comparator_factory(TypeDecorator.Comparator[Any]):  # type: ignore[reportIncompatibleMethodOverride]
-        def operate(self, op: Any, *other: Any, **kwargs: Any) -> Any:
-            cast(_DeprecatedTypeWrapper, self.type).column.emit()
-            return null().comparator.operate(op, *other, **kwargs)
-
-        def reverse_operate(self, op: Any, other: Any, **kwargs: Any) -> Any:
-            cast(_DeprecatedTypeWrapper, self.type).column.emit()
-            return null().comparator.reverse_operate(op, other, **kwargs)
-
-
-class _DeprecatedLabel(Label[Any]):
-    inherit_cache = False
-
-    @property
-    def _select_iterable(self) -> Any:
-        cast(DeprecatedColumn, self.element).emit("reading")
-        return (self,)
 
 
 class DeprecatedColumn(Column[Any]):
     """Drop-in replacement for Column() inside Core Table definitions.
 
-    In normal mode, the column is excluded from auto-generated SELECT statements
-    and any explicit reference emits a DeprecationWarning with
-    NULL substituted in the SQL.
+    In normal mode, the column is omitted from statements that SQLAlchemy
+    generates from the whole table (e.g. ``select(table)``, INSERT without
+    explicit values, ``returning(table)``), including aliases, subqueries and
+    CTEs built from them. Any explicit reference (e.g. ``table.c.old_field``
+    in SELECT, WHERE or ORDER BY) emits a DeprecationWarning when the
+    statement is compiled; the query still uses the real column. Indexes and
+    constraints defined on the column do not count as references. Python-side
+    ``default``, ``insert_default`` and ``onupdate`` are ignored.
 
     In Alembic mode (after configure(alembic_mode=True)), returns a plain nullable
     Column so Alembic generates correct migrations.
@@ -68,9 +28,13 @@ class DeprecatedColumn(Column[Any]):
     Pass raise_on_access=True to raise ColumnDeprecatedError instead of warning.
     """
 
+    # Disables SQL caching for statements that explicitly reference the column,
+    # so the warning is emitted on every execution, not only the first.
     inherit_cache = False
 
     def __new__(cls, *args: Any, raise_on_access: bool = False, **kwargs: Any) -> Column[Any]:
+        # SQLAlchemy also calls this for alias and subquery proxies, so
+        # configure() must run before any table is used, not only defined.
         if config.alembic_mode:
             kwargs["nullable"] = True
             return Column(*args, **kwargs)
@@ -79,19 +43,35 @@ class DeprecatedColumn(Column[Any]):
     def __init__(self, *args: Any, raise_on_access: bool = False, **kwargs: Any) -> None:
         self._raise_on_access = raise_on_access
         kwargs["nullable"] = True
+        # Older SQLAlchemy versions do not accept `insert_default`; it is
+        # dropped together with the other Python-side defaults below.
+        kwargs.pop("insert_default", None)
+        # Set on every instance, including the proxies SQLAlchemy builds through
+        # this class for aliases and subqueries, so they are omitted as well.
+        kwargs["_omit_from_statements"] = True
         super().__init__(*args, **kwargs)
-        self.type = _DeprecatedTypeWrapper(self)
+        # Python-side defaults would add the column back into generated INSERT
+        # and UPDATE statements. Cleared after init, as they can also be passed
+        # positionally (e.g. `ColumnDefault(...)`).
+        self.default = None
+        self.onupdate = None
 
-    @property
-    def _select_iterable(self) -> Any:
-        self.emit("reading")
-        return (null().label(self.name),)
-
-    def label(self, name: str | None) -> Any:
-        return _DeprecatedLabel(name, self, self.type)
-
-    def emit(self, verb: str = "referencing") -> None:
-        msg = f"{verb} deprecated column {self.table.name}.{self.name}"
-        if self._raise_on_access:
+    def _emit(self) -> None:
+        # Proxies (e.g. alias.c.old_field) report the original Table column.
+        origin = next(
+            (c for c in self.base_columns if isinstance(c, DeprecatedColumn)),
+            self,
+        )
+        msg = f"referencing deprecated column {origin.table.name}.{origin.name}"
+        if origin._raise_on_access:
             raise ColumnDeprecatedError(msg)
         warnings.warn(msg, DeprecationWarning, stacklevel=find_stack_level())
+
+
+@compiles(DeprecatedColumn)
+def compile_deprecated_column(element: DeprecatedColumn, compiler: SQLCompiler, **kw: Any) -> str:
+    # DDL (e.g. CREATE INDEX) renders column expressions through a compiler that
+    # has no statement; creating the schema is not a reference to the column.
+    if compiler.statement is not None:
+        element._emit()  # pyright: ignore[reportPrivateUsage]
+    return compiler.visit_column(element, **kw)

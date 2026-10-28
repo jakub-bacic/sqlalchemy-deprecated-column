@@ -19,7 +19,7 @@ keywords = [
     "backward compatibility",
 ]
 dependencies = [
-    "sqlalchemy>=2.0",
+    "sqlalchemy>=2.0.10",
 ]
 classifiers = [
     "License :: OSI Approved :: MIT License",
