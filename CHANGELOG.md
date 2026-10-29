@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.4.0](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/compare/v0.3.0...v0.4.0) (2026-10-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* statements that use an ORM class-level reference to a deprecated column now raise ColumnDeprecatedError instead of emitting a DeprecationWarning and comparing against NULL.
+
+### Features
+
+* add DeprecatedColumn for SQLAlchemy Core Table definitions ([#22](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/issues/22)) ([f35e8f2](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/commit/f35e8f2ec84a6467e1f7a0a86fa138a88f8531b4))
+* simplify Core DeprecatedColumn using SQLAlchemy's omit-from-statements flag ([#29](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/issues/29)) ([36847de](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/commit/36847de060ae6b60df066deba07e770b09119374))
+
+
+### Bug Fixes
+
+* project Core deprecated columns as NULL in SELECT so result rows remain accessible ([#24](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/issues/24)) ([e3b2aaf](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/commit/e3b2aaf323492c43c1d2744c1977c3c850d38c46))
+* raise ColumnDeprecatedError for statements using ORM class-level references ([#31](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/issues/31)) ([033a3e0](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/commit/033a3e02831ec27f1b31a9bdb60b69dd685122c2))
+
+
+### Documentation
+
+* mark Core feature as experimental ([#26](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/issues/26)) ([69b4e60](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/commit/69b4e6014569592f52aff8e5cc7c9651d61a7660))
+* update README for Core DeprecatedColumn ([#25](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/issues/25)) ([a9a0af5](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/commit/a9a0af5451a52e1b4178347cf48aacc12efeb35e))
+
 ## [0.3.0](https://github.com/jakub-bacic/sqlalchemy-deprecated-column/compare/v0.2.0...v0.3.0) (2026-05-07)
 
 
