@@ -1,7 +1,8 @@
 """Tests for runtime access behavior of deprecated fields.
 
-Covers instance reads, class-level reads, and instance writes — each of which
-should return None and emit a DeprecationWarning.
+Covers instance reads, class-level reads, and instance writes. Instance access
+emits a DeprecationWarning; class-level reads are checked when the statement
+is compiled (see test_sql_output.py).
 """
 
 import pytest
@@ -48,13 +49,10 @@ class TestRead:
 class TestClassRead:
     """Reading a deprecated field directly on the model class."""
 
-    def test_emits_deprecation_warning(self, model_cls):
-        with pytest.warns(DeprecationWarning) as record:
-            _ = model_cls.old_field
+    def test_no_warning(self, model_cls, recwarn):
+        _ = model_cls.old_field == "value"
 
-        (warning,) = record
-        assert str(warning.message) == "referencing deprecated class field MyModel.old_field"
-        assert warning.filename == __file__
+        assert not recwarn.list
 
 
 class TestWrite:
@@ -81,10 +79,6 @@ class TestInit:
         with pytest.warns(DeprecationWarning) as record:
             model_cls(old_field="some_value")
 
-        # SQLAlchemy's __init__ does hasattr(cls_, k) before setattr, triggering
-        # the class expression first, then the setter.
-        referencing, writing = record
-        assert str(referencing.message) == "referencing deprecated class field MyModel.old_field"
-        assert referencing.filename == __file__
+        (writing,) = record
         assert str(writing.message) == "writing to deprecated field MyModel.old_field"
         assert writing.filename == __file__
