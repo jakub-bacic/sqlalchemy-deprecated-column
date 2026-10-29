@@ -54,7 +54,7 @@ While the column is deprecated the library:
 
 - **Hides it from the ORM**: the column is excluded from all generated SQL queries — existing application code stays compatible even after the column is eventually dropped from the database.
 - **Warns on instance read**: `instance.old_username` returns `None` and emits a `DeprecationWarning` naming the model and column, so the call site is easy to locate.
-- **Warns on class-level reference**: `User.old_username` (e.g. in filter expressions) emits a `DeprecationWarning` and evaluates to SQL `NULL`.
+- **Raises on class-level reference**: a statement that uses `User.old_username` (e.g. in `where()`, `order_by()`, `filter_by()` or `update().values()`) raises `ColumnDeprecatedError` when it is compiled or executed, so it never runs with a wrong condition. This applies with or without `raise_on_access`. Building the expression and defining the model do not raise.
 - **Warns on write and discards the value**: `instance.old_username = "x"` emits a `DeprecationWarning` and silently drops the value, so no stale data is written to the database.
 
 ### Core (experimental)
@@ -107,7 +107,7 @@ While the column is deprecated the library:
 
 ### raise_on_access
 
-Pass `raise_on_access=True` to raise a `ColumnDeprecatedError` on any access that would otherwise emit a warning. This works for both ORM and Core and is useful when you want to enforce that all stale references are removed — for example, by letting the exception surface in tests or CI:
+Pass `raise_on_access=True` to raise a `ColumnDeprecatedError` on any access that would otherwise emit a warning (ORM class-level references always raise). This works for both ORM and Core and is useful when you want to enforce that all stale references are removed — for example, by letting the exception surface in tests or CI:
 
 ```python
 # ORM (inside a model class)

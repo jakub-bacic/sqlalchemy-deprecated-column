@@ -33,7 +33,7 @@ This is a published library — prefer backward compatible changes to the public
 - `deprecated_column` — drop-in for `mapped_column()` in ORM models
 - `DeprecatedColumn` — drop-in for `Column()` in Core `Table` definitions
 - `configure` — sets global options (e.g. `alembic_mode`)
-- `ColumnDeprecatedError` — raised when `raise_on_access=True`
+- `ColumnDeprecatedError` — raised when `raise_on_access=True`, and always for statements that use an ORM class-level reference
 
 Unless the user explicitly asks for a breaking change, avoid:
 - Removing or renaming public symbols.
@@ -55,6 +55,7 @@ Use **US English** throughout — both in `README.md` and in docstrings (e.g. "b
 ## Key design decisions
 
 - **`deprecated_column()` is a drop-in for `mapped_column()`** — accepts the same arguments, which are intentionally ignored in normal mode (only forwarded to `mapped_column` in alembic_mode).
+- **ORM class-level references raise at compile time** — `User.old_field` returns a placeholder SQL element whose `@compiles` hook raises `ColumnDeprecatedError`, as the column is not mapped and there is no correct SQL to render. The attribute read itself must not raise or warn: declarative, dataclasses and the model constructor read it too.
 - **`DeprecatedColumn` is a drop-in for `Column()`** — accepts the same arguments and forwards them to `Column.__init__()` in both modes; `nullable` is forced to `True`, and in normal mode Python-side `default`/`insert_default`/`onupdate` are dropped.
 - **Core only guards statements generated from the whole table** — `DeprecatedColumn` sets SQLAlchemy's `_omit_from_statements` flag (the mechanism behind the public `insert_sentinel()`) and emits warnings from a `@compiles` hook. Explicit references are never rewritten; avoid adding further overrides of SQLAlchemy internals.
 - **`conftest.py` resets config between tests** — the `reset_config` autouse fixture calls `sdc.configure()` to restore defaults, preventing state leaking between tests.
